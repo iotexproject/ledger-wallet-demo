@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "name": "ledger-wallet-demo",
+  "version": "0.0.1",
+  "description": "A demo Electron IoTeX ledger application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "postinstall": "electron-rebuild"
+  },
+  "devDependencies": {
+    "electron": "^4.0.3",
+    "electron-rebuild": "^1.8.4"
+  },
+  "dependencies": {
+    "@ledgerhq/hw-transport-node-hid": "^4.38.6",
+    "babel-polyfill": "^6.26.0",
+    "bech32": "^1.1.3",
+    "iotex-antenna": "git://github.com/iotexproject/iotex-antenna.git#ledger",
+    "ripemd160": "^2.0.2"
+  }
+}
