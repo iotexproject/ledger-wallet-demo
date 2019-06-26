@@ -14,7 +14,7 @@ class LedgerSigner {
   async sign(address, data){
     const transport = await TransportNodeHid.open("");
     const app = new IoTeXApp(transport);
-    const signed = await app.sign([44, 304, 0, 0, 0], data);
+    const signed = await app.sign([44, 304, 0, 0], data);
     console.log(signed);
     return {
       data: Buffer.from(""),

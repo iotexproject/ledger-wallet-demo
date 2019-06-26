@@ -86,6 +86,21 @@ function serializePath(path) {
   return buf;
 }
 
+function signGetChunks(message) {
+  const chunks = [];
+  const buffer = Buffer.from(message);
+
+  for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
+    let end = i + CHUNK_SIZE;
+    if (i > buffer.length) {
+      end = buffer.length;
+    }
+    chunks.push(buffer.slice(i, end));
+  }
+
+  return chunks;
+}
+
 module.exports.IoTeXApp = class IoTeXApp {
   constructor(transport, scrambleKey = 'CSM') {
     if (typeof transport === 'undefined') {
@@ -270,11 +285,15 @@ module.exports.IoTeXApp = class IoTeXApp {
       );
   }
 
-  async sign(path, message) {
-    const serializedPath = serializePath(path);
-    await this.transport.send(CLA, INS.SIGN_SECP256K1, 0x01, 0x02, serializedPath);
-    return this.transport.send(CLA, INS.SIGN_SECP256K1, 0x02, 0x02, message)
-      .then(
+  async sign_send_chunk(chunk_idx, chunk_num, chunk) {
+    return this.transport.send(
+      CLA,
+      INS.SIGN_SECP256K1,
+      chunk_idx,
+      chunk_num,
+      chunk,
+      [0x9000, 0x6A80],
+    ).then(
         (response) => {
           const errorCodeData = response.slice(-2);
           const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
@@ -293,6 +312,37 @@ module.exports.IoTeXApp = class IoTeXApp {
             signature,
             code: returnCode,
             message: errorMessage,
+          };
+        },
+        processErrorResponse,
+      );
+  }
+
+  async sign(path, message) {
+    const serializedPath = serializePath(path);
+    await this.transport.send(CLA, INS.SIGN_SECP256K1, 1, 2, serializedPath);
+    const chunks = signGetChunks(message);
+    return this.sign_send_chunk(1, chunks.length, chunks[0], [0x9000])
+      .then(
+        async (response) => {
+          let result = {
+            code: response.code,
+            message: response.message,
+            signature: null,
+          };
+
+          for (let i = 1; i < chunks.length; i += 1) {
+            // eslint-disable-next-line no-await-in-loop
+            result = await this.sign_send_chunk(1 + i, chunks.length, chunks[i]);
+            if (result.code !== 0x9000) {
+              break;
+            }
+          }
+
+          return {
+            code: result.code,
+            message: result.message,
+            signature: result.signature,
           };
         },
         processErrorResponse,
