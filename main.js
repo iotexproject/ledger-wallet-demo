@@ -19,7 +19,7 @@ class LedgerSigner {
     transport.setDebugMode(true);
     const app = new IoTeXApp(transport);
     const signed = await app.sign([44, 304, 0, 0, 0], data);
-    console.log(this.publicKey.toString("hex"));
+    await transport.close();
     return {
       data: signed.signature,
       publicKey: this.publicKey,
