@@ -15,11 +15,11 @@ ipcRenderer.on("addressInfo", (event, arg) => {
   const vita = document.querySelector("#vita");
   iotx.onclick = ()=>
   {
-    ipcRenderer.send('sendIOTX', arg.address);
+    ipcRenderer.send('sendIOTX', arg.address, arg.publicKey);
   }
   vita.onclick = ()=>
   {
-    ipcRenderer.send('sendVITA', arg.address);
+    ipcRenderer.send('sendVITA', arg.address, arg.publicKey);
   }
 });
 

@@ -256,7 +256,6 @@ module.exports.IoTeXApp = class IoTeXApp {
           const pk = Buffer.from(response.slice(0, 65));
           return {
             publicKey: pk,
-            compressedPublicKey: compressPublicKey(pk),
             code: returnCode,
             message: errorCodeToString(returnCode),
           };
@@ -273,7 +272,7 @@ module.exports.IoTeXApp = class IoTeXApp {
           const errorCodeData = response.slice(-2);
           const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
 
-          const compressedPk = Buffer.from(response.slice(0, 33));
+          const compressedPk = Buffer.from(response.slice(0, 65));
           const bech32Address = Buffer.from(response.slice(33, -2)).toString();
 
           return {

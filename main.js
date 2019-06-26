@@ -5,21 +5,24 @@ const { IoTeXApp } = require("./iotex");
 const { app, BrowserWindow, ipcMain } = require("electron");
 
 const Antenna = require("iotex-antenna").default;
-
-const { ISigner, SignedData } = require("iotex-antenna/lib/account/signer");
+const { publicKeyToAddress } = require("iotex-antenna/lib/crypto/crypto");
 
 const antenna = new Antenna("http://api.testnet.iotex.one:80");
 
 class LedgerSigner {
+  constructor(publicKey) {
+    this.publicKey = publicKey;
+  }
+
   async sign(address, data){
     const transport = await TransportNodeHid.open("");
     transport.setDebugMode(true);
     const app = new IoTeXApp(transport);
-    const signed = await app.sign([44, 304, 0, 0], data);
-    console.log(signed);
+    const signed = await app.sign([44, 304, 0, 0, 0], data);
+    console.log(this.publicKey.toString("hex"));
     return {
-      data: Buffer.from(""),
-      publicKey: publicKey.compressedPublicKey,
+      data: signed.signature,
+      publicKey: this.publicKey,
     };
   }
 }
@@ -29,7 +32,7 @@ function getAddressInfo() {
     .then(transport => {
       transport.setDebugMode(true);
       const app = new IoTeXApp(transport);
-      return app.getAddressAndPubKey([44, 304, 0, 0, 0], "io").then(r =>
+      return app.publicKey([44, 304, 0, 0, 0]).then(r =>
         transport
           .close()
           .catch(e => {})
@@ -57,14 +60,15 @@ function createWindow() {
 
   ipcMain.on("getAddress", () => {
     getAddressInfo(false).then(result => {
-      mainWindow.webContents.send("addressInfo", result);
+      const address = publicKeyToAddress(result.publicKey.toString("hex"));
+      mainWindow.webContents.send("addressInfo", {address: address, publicKey: result.publicKey});
     });
   });
 
-  ipcMain.on("sendIOTX", async (event, address) => {
+  ipcMain.on("sendIOTX", async (event, address, publicKey) => {
     const sender = antenna.iotx.accounts.addressToAccount(
       address,
-      new LedgerSigner(),
+      new LedgerSigner(publicKey),
     );
     const hash = await antenna.iotx.sendTransfer({
       from: sender.address,
