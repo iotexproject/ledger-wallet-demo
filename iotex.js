@@ -86,8 +86,10 @@ function serializePath(path) {
   return buf;
 }
 
-function signGetChunks(message) {
+function signGetChunks(path, message) {
   const chunks = [];
+  chunks.push(serializePath(path));
+
   const buffer = Buffer.from(message);
 
   for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
@@ -319,9 +321,9 @@ module.exports.IoTeXApp = class IoTeXApp {
   }
 
   async sign(path, message) {
-    const serializedPath = serializePath(path);
-    await this.transport.send(CLA, INS.SIGN_SECP256K1, 1, 2, serializedPath);
-    const chunks = signGetChunks(message);
+    //const serializedPath = serializePath(path);
+    //await this.transport.send(CLA, INS.SIGN_SECP256K1, 1, 2, serializedPath);
+    const chunks = signGetChunks(path, message);
     return this.sign_send_chunk(1, chunks.length, chunks[0], [0x9000])
       .then(
         async (response) => {

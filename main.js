@@ -13,6 +13,7 @@ const antenna = new Antenna("http://api.testnet.iotex.one:80");
 class LedgerSigner {
   async sign(address, data){
     const transport = await TransportNodeHid.open("");
+    transport.setDebugMode(true);
     const app = new IoTeXApp(transport);
     const signed = await app.sign([44, 304, 0, 0], data);
     console.log(signed);
