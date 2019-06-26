@@ -8,6 +8,7 @@ const Antenna = require("iotex-antenna").default;
 const { publicKeyToAddress } = require("iotex-antenna/lib/crypto/crypto");
 
 const antenna = new Antenna("http://api.testnet.iotex.one:80");
+const { abi } = require("./abi");
 
 class LedgerSigner {
   constructor(publicKey) {
@@ -72,16 +73,33 @@ function createWindow() {
     );
     const hash = await antenna.iotx.sendTransfer({
       from: sender.address,
-      to: "io187wzp08vnhjjpkydnr97qlh8kh0dpkkytfam8j",
+      to: "io13zt8sznez2pf0q0hqdz2hyl938wak2fsjgdeml",
       value: "1000000000000000000",
       gasLimit: "100000",
       gasPrice: "1"
     });
     mainWindow.webContents.send("sendInfo", {hash: hash});
   });
-  ipcMain.on("sendVITA", (event, address) => {
-    // io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h
-    console.log(address);
+  ipcMain.on("sendVITA", async (event, address, publicKey) => {
+    const sender = antenna.iotx.accounts.addressToAccount(
+      address,
+      new LedgerSigner(publicKey),
+    );
+
+    const hash = await antenna.iotx.executeContract(
+      {
+        from: sender.address,
+        contractAddress: "io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h",
+        abi: JSON.stringify(abi),
+        amount: "0",
+        method: "transfer",
+        gasPrice: "1",
+        gasLimit: "1000000"
+      },
+      "io13zt8sznez2pf0q0hqdz2hyl938wak2fsjgdeml",
+      "2000000000000000000"
+    );
+    mainWindow.webContents.send("sendInfo", {hash: hash});
   });
 }
 
