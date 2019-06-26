@@ -15,8 +15,6 @@
   "dependencies": {
     "@ledgerhq/hw-transport-node-hid": "^4.38.6",
     "babel-polyfill": "^6.26.0",
-    "bech32": "^1.1.3",
-    "iotex-antenna": "git://github.com/iotexproject/iotex-antenna.git#ledger",
-    "ripemd160": "^2.0.2"
+    "iotex-antenna": "git://github.com/iotexproject/iotex-antenna.git#ledger"
   }
 }

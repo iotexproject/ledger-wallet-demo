@@ -59,7 +59,7 @@ function createWindow() {
   });
 
   ipcMain.on("getAddress", () => {
-    getAddressInfo(false).then(result => {
+    getAddressInfo().then(result => {
       const address = publicKeyToAddress(result.publicKey.toString("hex"));
       mainWindow.webContents.send("addressInfo", {address: address, publicKey: result.publicKey});
     });
@@ -77,9 +77,10 @@ function createWindow() {
       gasLimit: "100000",
       gasPrice: "1"
     });
-    console.log(hash);
+    mainWindow.webContents.send("sendInfo", {hash: hash});
   });
   ipcMain.on("sendVITA", (event, address) => {
+    // io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h
     console.log(address);
   });
 }

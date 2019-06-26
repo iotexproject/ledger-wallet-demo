@@ -1,7 +1,3 @@
-const crypto = require("crypto");
-const Ripemd160 = require("ripemd160");
-const bech32 = require("bech32");
-
 const CLA = 0x55;
 const CHUNK_SIZE = 250;
 
@@ -40,15 +36,6 @@ const ERROR_DESCRIPTION = {
 function errorCodeToString(statusCode) {
   if (statusCode in ERROR_DESCRIPTION) return ERROR_DESCRIPTION[statusCode];
   return `Unknown Status Code: ${statusCode}`;
-}
-
-module.exports.getBech32FromPK = function getBech32FromPK(hrp, pk) {
-  if (pk.length !== 33) {
-    throw new Error('expected compressed public key [31 bytes]');
-  }
-  const hashSha256 = crypto.createHash('sha256').update(pk).digest();
-  const hashRip = new Ripemd160().update(hashSha256).digest();
-  return bech32.encode(hrp, bech32.toWords(hashRip));
 }
 
 function processErrorResponse(response) {
@@ -264,34 +251,12 @@ module.exports.IoTeXApp = class IoTeXApp {
       );
   }
 
-  async getAddressAndPubKey(path, hrp) {
-    const data = Buffer.concat([serializeHRP(hrp), serializePath(path)]);
-    return this.transport.send(CLA, INS.GET_ADDR_SECP256K1, 0, 0, data, [0x9000])
-      .then(
-        (response) => {
-          const errorCodeData = response.slice(-2);
-          const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
-
-          const compressedPk = Buffer.from(response.slice(0, 65));
-          const bech32Address = Buffer.from(response.slice(33, -2)).toString();
-
-          return {
-            address: bech32Address,
-            compressedPublicKey: compressedPk,
-            code: returnCode,
-            message: errorCodeToString(returnCode),
-          };
-        },
-        processErrorResponse,
-      );
-  }
-
-  async sign_send_chunk(chunk_idx, chunk_num, chunk) {
+  async signSendChunk(chunkIdx, chunkNum, chunk) {
     return this.transport.send(
       CLA,
       INS.SIGN_SECP256K1,
-      chunk_idx,
-      chunk_num,
+      chunkIdx,
+      chunkNum,
       chunk,
       [0x9000, 0x6A80],
     ).then(
@@ -320,10 +285,8 @@ module.exports.IoTeXApp = class IoTeXApp {
   }
 
   async sign(path, message) {
-    //const serializedPath = serializePath(path);
-    //await this.transport.send(CLA, INS.SIGN_SECP256K1, 1, 2, serializedPath);
     const chunks = signGetChunks(path, message);
-    return this.sign_send_chunk(1, chunks.length, chunks[0], [0x9000])
+    return this.signSendChunk(1, chunks.length, chunks[0])
       .then(
         async (response) => {
           let result = {
@@ -334,7 +297,7 @@ module.exports.IoTeXApp = class IoTeXApp {
 
           for (let i = 1; i < chunks.length; i += 1) {
             // eslint-disable-next-line no-await-in-loop
-            result = await this.sign_send_chunk(1 + i, chunks.length, chunks[i]);
+            result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
             if (result.code !== 0x9000) {
               break;
             }

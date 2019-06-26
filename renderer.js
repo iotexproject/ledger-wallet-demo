@@ -10,6 +10,8 @@ ipcRenderer.on("addressInfo", (event, arg) => {
   <button id="iotx">Send 1 IOTX</button>
   <br>
   <button id="vita">Send 1 VITA</button>
+  <br>
+  <h4 id="hash"></h4>
   `;
   const iotx = document.querySelector("#iotx");
   const vita = document.querySelector("#vita");
@@ -21,6 +23,10 @@ ipcRenderer.on("addressInfo", (event, arg) => {
   {
     ipcRenderer.send('sendVITA', arg.address, arg.publicKey);
   }
+});
+
+ipcRenderer.on("sendInfo", (event, arg) => {
+  document.getElementById("hash").innerHTML = "Send hash: " + arg.hash;
 });
 
 ipcRenderer.send("getAddress");
