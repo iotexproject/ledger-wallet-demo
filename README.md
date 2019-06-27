@@ -23,7 +23,7 @@ const antenna = new Antenna("http://api.iotex.one:80");
 async function getAddressInfo() {
   const transport = await TransportNodeHid.open("");
   transport.setDebugMode(true);
-  
+
   const app = new IoTeXApp(transport);
   const publicKey = await app.publicKey([44, 304, 0, 0, 0]);
   await transport.close();
