@@ -89,7 +89,8 @@ function createWindow() {
     const hash = await antenna.iotx.executeContract(
       {
         from: sender.address,
-        contractAddress: "io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h",
+        // testnet io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h
+        contractAddress: "io1hp6y4eqr90j7tmul4w2wa8pm7wx462hq0mg4tw",
         abi: JSON.stringify(abi),
         amount: "0",
         method: "transfer",
@@ -97,7 +98,7 @@ function createWindow() {
         gasLimit: "1000000"
       },
       "io13zt8sznez2pf0q0hqdz2hyl938wak2fsjgdeml",
-      "2000000000000000000"
+      "1000000000000000000"
     );
     mainWindow.webContents.send("sendInfo", {hash: hash});
   });
