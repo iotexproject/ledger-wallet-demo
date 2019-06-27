@@ -1,30 +1,61 @@
 # Ledger wallet demo
 
-IoTeX Ledger Electron example that uses node-hid.
+IoTeX Ledger Electron demo that uses node-hid.
+
+## Library
+
+The [iotex.js](./iotex.js) provides a basic client library to communicate with a IoTeX App running in a Ledger Nano S/X.
+
+### Usage
+
+Include the necessary library in wallet app.
+
+```js
+const TransportNodeHid = require("@ledgerhq/hw-transport-node-hid").default;
+const { IoTeXApp } = require("./iotex");
+
+// IoTex js lib
+const Antenna = require("iotex-antenna").default;
+// connect to mainnet
+const antenna = new Antenna("http://api.iotex.one:80");
+
+// GetAddress
+async function getAddressInfo() {
+  const transport = await TransportNodeHid.open("");
+  transport.setDebugMode(true);
+  
+  const app = new IoTeXApp(transport);
+  const publicKey = await app.publicKey([44, 304, 0, 0, 0]);
+  await transport.close();
+  return {
+    publicKey: publicKey.publicKey
+  };
+}
+
+// Sign action
+async function sign(address, data){
+  const transport = await TransportNodeHid.open("");
+  transport.setDebugMode(true);
+
+  const app = new IoTeXApp(transport);
+  const signed = await app.sign([44, 304, 0, 0, 0], data);
+  await transport.close();
+  return {
+    data: signed.signature,
+    publicKey: this.publicKey,
+  };
+}
+```
 
 ---
 
-This was bootstrapped with **electron-quick-start**.
+## Demo
 
-## Run
+This demo was bootstrapped with **electron-quick-start**.
+
+### Run
 
 ```bash
 npm install
 npm run start
-```
-
-## Docs
-
-
-```
-// 1. GetAddress  44'/304'/{account}0'/0/{index}0
-550400001802696f052c00008030010080000000800000000000000000
-
-// 2. Sign key  44'/304'/{account}0'/0  (remove index)
-5502010215052c00008030010080000000800000000000000000
-5502010211052c00008030010080000000800000000000000000
-
-// 3. Sign (which index?, format?, length? 255)
-55020202590801100118a08d06220d3130303030303030303030303052400a13313030303030303030303030303030303030301229696f313837777a703038766e686a6a706b79646e723937716c68386b683064706b6b797466616d386a
-55020202a40801100118c09a0c2201315296010a033130301229696f3134356d766e677861736a70366473733878333877323864396c3772357766647638796c7277781a6400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 ```

@@ -7,7 +7,7 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const Antenna = require("iotex-antenna").default;
 const { publicKeyToAddress } = require("iotex-antenna/lib/crypto/crypto");
 
-const antenna = new Antenna("http://api.testnet.iotex.one:80");
+const antenna = new Antenna("http://api.iotex.one:80");
 const { abi } = require("./abi");
 
 class LedgerSigner {
