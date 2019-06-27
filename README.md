@@ -28,7 +28,7 @@ async function getAddressInfo() {
   const publicKey = await app.publicKey([44, 304, 0, 0, 0]);
   await transport.close();
   return {
-    publicKey: publicKey.publicKey
+    publicKey: publicKey.publicKey
   };
 }
 
