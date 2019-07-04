@@ -6,25 +6,27 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 
 const Antenna = require("iotex-antenna").default;
 const { publicKeyToAddress } = require("iotex-antenna/lib/crypto/crypto");
+const { SealedEnvelop } = require("iotex-antenna/lib/action/envelop");
 
-const antenna = new Antenna("http://api.iotex.one:80");
 const { abi } = require("./abi");
 
 class LedgerSigner {
-  constructor(publicKey) {
+  constructor(address, publicKey) {
     this.publicKey = publicKey;
+    this.address = address;
   }
 
-  async sign(address, data){
+  async signOnly(envelop) {
     const transport = await TransportNodeHid.open("");
     transport.setDebugMode(true);
     const app = new IoTeXApp(transport);
-    const signed = await app.sign([44, 304, 0, 0, 0], data);
+    const signed = await app.sign([44, 304, 0, 0, 0], envelop.bytestream());
     await transport.close();
-    return {
-      data: signed.signature,
-      publicKey: this.publicKey,
-    };
+    return new SealedEnvelop(envelop, this.publicKey, signed.signature);
+  }
+
+  async getAccount(address) {
+    return {address: address};
   }
 }
 
@@ -67,12 +69,9 @@ function createWindow() {
   });
 
   ipcMain.on("sendIOTX", async (event, address, publicKey) => {
-    const sender = antenna.iotx.accounts.addressToAccount(
-      address,
-      new LedgerSigner(publicKey),
-    );
+    const antenna = new Antenna("http://api.iotex.one:80", {signer: new LedgerSigner(address, publicKey)});
     const hash = await antenna.iotx.sendTransfer({
-      from: sender.address,
+      from: address,
       to: "io13zt8sznez2pf0q0hqdz2hyl938wak2fsjgdeml",
       value: "1000000000000000000",
       gasLimit: "100000",
@@ -81,6 +80,7 @@ function createWindow() {
     mainWindow.webContents.send("sendInfo", {hash: hash});
   });
   ipcMain.on("sendVITA", async (event, address, publicKey) => {
+    const antenna = new Antenna("http://api.iotex.one:80", {signer: new LedgerSigner(address, publicKey)});
     const sender = antenna.iotx.accounts.addressToAccount(
       address,
       new LedgerSigner(publicKey),
