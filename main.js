@@ -75,7 +75,7 @@ function createWindow() {
       to: "io13zt8sznez2pf0q0hqdz2hyl938wak2fsjgdeml",
       value: "1000000000000000000",
       gasLimit: "100000",
-      gasPrice: "1"
+      gasPrice: "1000000000000"
     });
     mainWindow.webContents.send("sendInfo", {hash: hash});
   });
@@ -94,7 +94,7 @@ function createWindow() {
         abi: JSON.stringify(abi),
         amount: "0",
         method: "transfer",
-        gasPrice: "1",
+        gasPrice: "1000000000000",
         gasLimit: "1000000"
       },
       "io13zt8sznez2pf0q0hqdz2hyl938wak2fsjgdeml",
