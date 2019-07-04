@@ -81,16 +81,12 @@ function createWindow() {
   });
   ipcMain.on("sendVITA", async (event, address, publicKey) => {
     const antenna = new Antenna("http://api.iotex.one:80", {signer: new LedgerSigner(address, publicKey)});
-    const sender = antenna.iotx.accounts.addressToAccount(
-      address,
-      new LedgerSigner(publicKey),
-    );
 
     const hash = await antenna.iotx.executeContract(
       {
-        from: sender.address,
+        from: address,
         // testnet io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h
-        contractAddress: "io1hp6y4eqr90j7tmul4w2wa8pm7wx462hq0mg4tw",
+        contractAddress: "io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h",
         abi: JSON.stringify(abi),
         amount: "0",
         method: "transfer",
