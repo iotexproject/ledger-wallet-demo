@@ -17,7 +17,7 @@ class LedgerSigner {
   }
 
   async signOnly(envelop) {
-    const transport = await TransportNodeHid.open("");
+    const transport = await TransportNodeHid.create();
     transport.setDebugMode(true);
     const app = new IoTeXApp(transport);
     const signed = await app.sign([44, 304, 0, 0, 0], envelop.bytestream());
@@ -31,7 +31,7 @@ class LedgerSigner {
 }
 
 function getAddressInfo() {
-  return TransportNodeHid.open("")
+  return TransportNodeHid.create()
     .then(transport => {
       transport.setDebugMode(true);
       const app = new IoTeXApp(transport);
@@ -68,18 +68,22 @@ function createWindow() {
     });
   });
 
-  ipcMain.on("sendIOTX", async (event, address, publicKey) => {
+  ipcMain.on("sendIOTX", async (event, address, publicKey, recipient, amount) => {
+    console.log(address);
+    console.log(publicKey);
+    console.log(recipient);
+    console.log(amount);
     const antenna = new Antenna("http://api.iotex.one:80", {signer: new LedgerSigner(address, publicKey)});
     const hash = await antenna.iotx.sendTransfer({
       from: address,
-      to: "io13zt8sznez2pf0q0hqdz2hyl938wak2fsjgdeml",
-      value: "1000000000000000000",
+      to: recipient,
+      value: amount,
       gasLimit: "100000",
       gasPrice: "1000000000000"
     });
     mainWindow.webContents.send("sendInfo", {hash: hash});
   });
-  ipcMain.on("sendVITA", async (event, address, publicKey) => {
+  ipcMain.on("sendVITA", async (event, address, publicKey, recipient, amount) => {
     const antenna = new Antenna("http://api.iotex.one:80", {signer: new LedgerSigner(address, publicKey)});
 
     const hash = await antenna.iotx.executeContract(
@@ -93,8 +97,8 @@ function createWindow() {
         gasPrice: "1000000000000",
         gasLimit: "1000000"
       },
-      "io13zt8sznez2pf0q0hqdz2hyl938wak2fsjgdeml",
-      "1000000000000000000"
+      recipient,
+      amount
     );
     mainWindow.webContents.send("sendInfo", {hash: hash});
   });

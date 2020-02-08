@@ -7,9 +7,13 @@ ipcRenderer.on("addressInfo", (event, arg) => {
   document.getElementById("main").innerHTML = `
   <h1>Your first IoTeX address:</h1>
   <h2>${arg.address}</h2>
-  <button id="iotx">Send 1 IOTX</button>
+  <hr>
+  <lable>Recipient:</lable><input id="address" type="text" size=50>
+  <lable>Amount:</lable><input id="amount" type="text" size=50>
   <br>
-  <button id="vita">Send 1 VITA</button>
+  <button id="iotx">Send IOTX</button>
+  <br>
+  <button id="vita">Send VITA</button>
   <br>
   <h4 id="hash"></h4>
   `;
@@ -17,11 +21,15 @@ ipcRenderer.on("addressInfo", (event, arg) => {
   const vita = document.querySelector("#vita");
   iotx.onclick = ()=>
   {
-    ipcRenderer.send('sendIOTX', arg.address, arg.publicKey);
+    const recipient = document.querySelector("#address").value;
+    const amount = document.querySelector("#amount").value;
+    ipcRenderer.send('sendIOTX', arg.address, arg.publicKey, recipient, amount);
   }
   vita.onclick = ()=>
   {
-    ipcRenderer.send('sendVITA', arg.address, arg.publicKey);
+    const recipient = document.querySelector("#address");
+    const amount = document.querySelector("#amount");
+    ipcRenderer.send('sendVITA', arg.address, arg.publicKey, recipient, amount);
   }
 });
 

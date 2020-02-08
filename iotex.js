@@ -103,7 +103,6 @@ module.exports.IoTeXApp = class IoTeXApp {
         'getVersion',
         'publicKey',
         'sign',
-        'getAddressAndPubKey',
         'appInfo',
         'deviceInfo'
       ],
