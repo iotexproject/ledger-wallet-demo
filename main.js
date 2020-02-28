@@ -22,6 +22,9 @@ class LedgerSigner {
     const app = new IoTeXApp(transport);
     const signed = await app.sign([44, 304, 0, 0, 0], envelop.bytestream());
     await transport.close();
+    if (signed.code !== 36864) {
+      throw new Error(signed.message || "ledger error");
+    }
     return new SealedEnvelop(envelop, this.publicKey, signed.signature);
   }
 
@@ -69,38 +72,43 @@ function createWindow() {
   });
 
   ipcMain.on("sendIOTX", async (event, address, publicKey, recipient, amount) => {
-    console.log(address);
-    console.log(publicKey);
-    console.log(recipient);
-    console.log(amount);
     const antenna = new Antenna("http://api.iotex.one:80", {signer: new LedgerSigner(address, publicKey)});
-    const hash = await antenna.iotx.sendTransfer({
-      from: address,
-      to: recipient,
-      value: amount,
-      gasLimit: "100000",
-      gasPrice: "1000000000000"
-    });
-    mainWindow.webContents.send("sendInfo", {hash: hash});
+    try {
+      const hash = await antenna.iotx.sendTransfer({
+        from: address,
+        to: recipient,
+        value: amount,
+        gasLimit: "100000",
+        gasPrice: "1000000000000"
+      });
+      mainWindow.webContents.send("sendInfo", {hash: hash});
+    } catch (e) {
+      mainWindow.webContents.send("sendError", {message: e.message || "send iotx error"});
+    }
   });
+
   ipcMain.on("sendVITA", async (event, address, publicKey, recipient, amount) => {
     const antenna = new Antenna("http://api.iotex.one:80", {signer: new LedgerSigner(address, publicKey)});
 
-    const hash = await antenna.iotx.executeContract(
-      {
-        from: address,
-        // testnet io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h
-        contractAddress: "io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h",
-        abi: JSON.stringify(abi),
-        amount: "0",
-        method: "transfer",
-        gasPrice: "1000000000000",
-        gasLimit: "1000000"
-      },
-      recipient,
-      amount
-    );
-    mainWindow.webContents.send("sendInfo", {hash: hash});
+    try {
+      const hash = await antenna.iotx.executeContract(
+        {
+          from: address,
+          // testnet io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h
+          contractAddress: "io1hy9w96v7gz7mqquyyacfhtqn6r0yasnsqrjk9h",
+          abi: JSON.stringify(abi),
+          amount: "0",
+          method: "transfer",
+          gasPrice: "1000000000000",
+          gasLimit: "1000000"
+        },
+        recipient,
+        amount
+      );
+      mainWindow.webContents.send("sendInfo", {hash: hash});
+    } catch (e) {
+      mainWindow.webContents.send("sendError", {message: e.message || "send vita error"});
+    }
   });
 }
 

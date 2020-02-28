@@ -37,4 +37,8 @@ ipcRenderer.on("sendInfo", (event, arg) => {
   document.getElementById("hash").innerHTML = "Send hash: " + arg.hash;
 });
 
+ipcRenderer.on("sendError", (event, arg) => {
+  document.getElementById("hash").innerHTML = "Send error: " + arg.message;
+});
+
 ipcRenderer.send("getAddress");

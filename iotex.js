@@ -257,11 +257,12 @@ module.exports.IoTeXApp = class IoTeXApp {
       chunkIdx,
       chunkNum,
       chunk,
-      [0x9000, 0x6A80],
+      [0x9000, 0x6A80, 0x6986],
     ).then(
         (response) => {
           const errorCodeData = response.slice(-2);
           const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+
           let errorMessage = errorCodeToString(returnCode);
 
           if (returnCode === 0x6A80) {
