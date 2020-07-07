@@ -14,7 +14,7 @@
     "package:installer": "node ./script/installer.js"
   },
   "devDependencies": {
-    "electron": "^4.0.3",
+    "electron": "^9.1.0",
     "electron-packager": "^14.0.0",
     "electron-rebuild": "^1.8.4",
     "electron-winstaller": "^3.0.4",
