@@ -10,15 +10,19 @@ ipcRenderer.on("addressInfo", (event, arg) => {
   <hr>
   <lable>Recipient:</lable><input id="address" type="text" size=50>
   <lable>Amount:</lable><input id="amount" type="text" size=50>
+  <lable>Message:</lable><input id="message" type="text" size=100>
   <br>
   <button id="iotx">Send IOTX</button>
   <br>
   <button id="vita">Send VITA</button>
   <br>
+  <button id="sign">Sign Message</button>
+  <br>
   <h4 id="hash"></h4>
   `;
   const iotx = document.querySelector("#iotx");
   const vita = document.querySelector("#vita");
+  const sign = document.querySelector("#sign");
   iotx.onclick = ()=>
   {
     const recipient = document.querySelector("#address").value;
@@ -31,6 +35,11 @@ ipcRenderer.on("addressInfo", (event, arg) => {
     const amount = document.querySelector("#amount");
     ipcRenderer.send('sendVITA', arg.address, arg.publicKey, recipient, amount);
   }
+  sign.onclick = ()=>
+  {
+    const message = document.querySelector("#message").value;
+    ipcRenderer.send('signMessage', arg.address, arg.publicKey, message);
+  }
 });
 
 ipcRenderer.on("sendInfo", (event, arg) => {
@@ -39,6 +48,10 @@ ipcRenderer.on("sendInfo", (event, arg) => {
 
 ipcRenderer.on("sendError", (event, arg) => {
   document.getElementById("hash").innerHTML = "Send error: " + arg.message;
+});
+
+ipcRenderer.on("signInfo", (event, arg) => {
+  document.getElementById("hash").innerHTML = "Signature: " + arg.signature;
 });
 
 ipcRenderer.send("getAddress");
