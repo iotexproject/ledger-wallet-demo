@@ -31,6 +31,18 @@ class LedgerSigner {
   async getAccount(address) {
     return {address: address};
   }
+
+  async signMessage(message) {
+    const transport = await TransportNodeHid.create();
+    transport.setDebugMode(true);
+    const app = new IoTeXApp(transport);
+    const signed = await app.signMessage([44, 304, 0, 0, 0], message);
+    await transport.close();
+    if (signed.code !== 36864) {
+      throw new Error(signed.message || "ledger error");
+    }
+    return signed.signature;
+  }
 }
 
 function getAddressInfo() {
@@ -89,7 +101,6 @@ function createWindow() {
 
   ipcMain.on("sendVITA", async (event, address, publicKey, recipient, amount) => {
     const antenna = new Antenna("http://api.iotex.one:80", {signer: new LedgerSigner(address, publicKey)});
-
     try {
       const hash = await antenna.iotx.executeContract(
         {
@@ -108,6 +119,16 @@ function createWindow() {
       mainWindow.webContents.send("sendInfo", {hash: hash});
     } catch (e) {
       mainWindow.webContents.send("sendError", {message: e.message || "send vita error"});
+    }
+  });
+
+  ipcMain.on("signMessage", async (event, address, publicKey, message) => {
+    const ledger = new LedgerSigner(address, publicKey);
+    try {
+      const signature = await ledger.signMessage(message);
+      mainWindow.webContents.send("signInfo", {signature: signature.toString("hex")});
+    } catch (e) {
+      mainWindow.webContents.send("sendError", {message: e.message || "send message error"});
     }
   });
 }
